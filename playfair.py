@@ -1,62 +1,60 @@
-import numpy
-def generateKeyMatrix (key): 
-  simpleKeyArr = []
-  for c in key:
-    if c not in simpleKeyArr:
-      (simpleKeyArr.append('I') if c=='J' else simpleKeyArr.append(c))
-  is_I_exist = "I" in simpleKeyArr
-  for i in range(65,91):
-    if chr(i) not in simpleKeyArr:
-      if i==73 and not is_I_exist:
-        simpleKeyArr.append("I")
-        is_I_exist = True
-      elif i==73 or i==74 and is_I_exist:
-        pass
-      else:
-        simpleKeyArr.append(chr(i))
-    
-  matrix_5x5=numpy.reshape(simpleKeyArr,(5,5))
-  print("Key Matrix:")
-  [print(row) for row in matrix_5x5]
-  return matrix_5x5
+def find(a,b):
+    temp = 0
+    r1,c1,r2,c2 =0,0,0,0
+    for i in range(25):
+        if temp!=2:
+            if a==keym[i//5][i%5]:
+                r1,c1 = i//5,i%5
+                temp+=1
+            if b==keym[i//5][i%5]:
+                r2,c2 = i//5,i%5
+                temp+=1
+        else:
+            break
+    #checking the 3 conditions
+    #1st is checking the same row if same then we need to just increase the row count
+    if(c1==c2):
+        print("{}{}".format(keym[(r1+1)%5][c1],keym[(r2+1)%5][c2]),end="")
+    elif(r1==r2):
+        print("{}{}".format(keym[r1][(c1+1)%5],keym[r2][(c2+1)%5]),end="")
+    else:
+        print("{}{}".format(keym[r1][c2],keym[r2][c1]),end="")
 
-def indexLocator (char,cipherKeyMatrix):
-  indexOfChar = []
-  if char=="J": char = "I"
+#user inputs
+pt = input("Enter the plainText: ").replace(' ','').lower()
+key = input("Enter the key: ").replace(' ','').lower()
+pt.replace('j','i')
+key.replace('j','i')
+pt = list(pt)
+for i in range(0,len(pt)-1,2):
+    if pt[i]==pt[i+1]:
+        pt.insert(i+1,'x')
+while(len(pt)%2!=0):
+    pt.append('z')
+#convert to numbers
+key1,key2 = set(),list()
+for a in key:
+    if a not in key1:
+        key1.add(a)
+        key2.append(a)
 
-  for i,j in enumerate(cipherKeyMatrix):
-    for k,l in enumerate(j):
-      if char == l:
-        indexOfChar.append(i)
-        indexOfChar.append(k)
-        return indexOfChar
+#make key only unique values
+#creating the key matrix
+global keym 
+keym = [['0' for i in range(5)] for j in range(5)]
+alpha = [chr(i+97) for i in range(26) ]
+#removing j since i and j are similiar
+alpha.remove('j')
 
-def encryption (plainText,key):
-  cipherText =[]
-  keyMatrix = generateKeyMatrix(key)
-  for s in range(0,len(plainText)+1,2):
-    if s<len(plainText)-1:
-      if plainText[s]==plainText[s+1]:plainText=plainText[:s+1]+'X'+plainText[s+1:]
+count,j =0,0
+for i in range(25):
+    if(count<len(key2)):
+        alpha.remove(key2[count])
+        keym[i//5][i%5] = key2[count]
+        count+=1
+    else:
+        keym[i//5][i%5] = alpha[j]
+        j+=1
 
-  if len(plainText)%2 != 0: plainText = plainText[:]+'X'
-
-  i = 0
-  while i < len(plainText):
-    n1 = indexLocator(plainText[i],keyMatrix)
-    n2 = indexLocator(plainText[i+1],keyMatrix)
-    i1 = (n1[0] + 1) % 5 if n1[1] == n2[1] else (n1[0] if n1[0]==n2[0] else n1[0])
-    j1= n1[1]if n1[1] == n2[1] else ((n1[1] + 1) % 5 if n1[0]==n2[0] else n2[1])
-    
-    i2 = (n2[0] + 1) % 5 if n1[1] == n2[1] else (n2[0] if n1[0]==n2[0] else n2[0])
-    j2= n2[1]if n1[1] == n2[1] else ((n2[1] + 1) % 5 if n1[0]==n2[0] else n1[1])
-    cipherText.append(keyMatrix[i1][j1])
-    cipherText.append(keyMatrix[i2][j2])
-    cipherText.append(" ")
-    i += 2  
-  return cipherText
-
-key = input("Enter key: ").replace(" ","").upper()
-plainText =input("Plain Text: ").replace(" ","").upper()
-cipherText =encryption(plainText,key)
-print("CipherText",end=': ')
-[print(cipher,end='') for cipher in cipherText]
+for i in range(0,len(pt),2):
+    find(pt[i],pt[i+1])
